@@ -3,7 +3,21 @@ package com.ics342.labs
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -12,6 +26,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.ics342.labs.data.DataItem
 import com.ics342.labs.ui.theme.LabsTheme
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 
 private val dataItems = listOf(
     DataItem(1, "Item 1", "Description 1"),
@@ -44,6 +73,7 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     Greeting("Android")
+                    DataItemList(dataItems = dataItems)
                 }
             }
         }
@@ -60,12 +90,42 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun DataItemView(dataItem: DataItem) {
-    /* Create the view for the data item her. */
+    Spacer(modifier = Modifier.size(10.dp))
+    Row (
+        modifier = Modifier
+            .fillMaxWidth()
+            ){
+        Text(
+            text = "${dataItem.id}",
+            fontWeight = FontWeight.Bold,
+            fontSize = 50.sp,
+        )
+        Spacer(modifier = Modifier.size(60.dp))
+        Column{
+            Text(text = "${dataItem.name}",
+                fontWeight = FontWeight.Bold,
+                fontSize = 50.sp,
+            )
+        }
+    }
+    Spacer(modifier = Modifier.size(5.dp))
+    Column{
+            Text(text = "${dataItem.description}",
+                fontSize = 40.sp,
+                textAlign = TextAlign.Left
+            )
+    }
 }
 
 @Composable
 fun DataItemList(dataItems: List<DataItem>) {
     /* Create the list here. This function will call DataItemView() */
+    LazyColumn {
+        // iterate through the arraylist dataitems
+        items(dataItems){item ->
+            DataItemView(item)
+        }
+    }
 }
 
 @Preview(showBackground = true)
@@ -73,5 +133,6 @@ fun DataItemList(dataItems: List<DataItem>) {
 fun GreetingPreview() {
     LabsTheme {
         Greeting("Android")
+//        DataItemList(dataItems)
     }
 }
