@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
@@ -28,10 +29,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 
 private val dataItems = listOf(
     DataItem(1, "Item 1", "Description 1"),
@@ -60,11 +67,29 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val navController = rememberNavController()
+
             LabsTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    Greeting("Android")
-                    DataItemScreen(dataItems)
+                    NavHost(navController = navController, startDestination = "Start") {
+                        composable("Start") {
+                            Greeting("Android")
+                            DataItemList(dataItems) { dataItem ->
+                                // Navigate to details screen when item clicked
+                                navController.navigate("details/${dataItem.id}")
+                            }
+                        }
+                        // Details screen composable with itemId argument
+                        composable(
+                            "details/{itemId}",
+                            arguments = listOf(navArgument("itemId") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            // Get the itemId from arguments and find the corresponding dataItem
+                            val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
+                            val dataItem = getDataItemById(itemId)
+                            DetailsScreen(dataItem)
+                        }
+                    }
                 }
             }
         }
@@ -79,27 +104,41 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     )
 }
 
+// Display the DataItemView for each item
 @Composable
-fun DataItemScreen(items: List<DataItem>){
-    var dataItem by remember {mutableStateOf<DataItem?> (null)}
-    DataItemList(items) {dataItem = it}
-    dataItem?. let{
-        AlertDialog(
-            onDismissRequest = {dataItem  = null },
-            title = { Text(
-                text = "${it.name}",
-//                fontWeight = FontWeight.Bold,
-            ) },
-            text = {
-                Text(text = "${it.description}")
-            },
-            confirmButton = {
-                Button({dataItem  = null})
-                {Text(text = "Okay")}
-            },
-        )
-    }
+fun getDataItemById(itemId: Int): DataItem? {
+    return dataItems.find { it.id == itemId }
+}
 
+@Composable
+fun DetailsScreen(dataItem: DataItem?) {
+    dataItem?.let {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Display dataItem details
+            Text(
+                text = "ID: ${dataItem.id}",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(16.dp)
+            )
+            Text(
+                text = "Title: ${dataItem.name}",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(16.dp)
+            )
+            Text(
+                text = "Description: ${dataItem.description}",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
 }
 
 @Composable
