@@ -3,6 +3,9 @@ package com.ics342.labs
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +22,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.ics342.labs.data.DataItem
 import com.ics342.labs.ui.theme.LabsTheme
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,7 +64,7 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     Greeting("Android")
-                    DataItemList(dataItems = dataItems)
+                    DataItemScreen(dataItems)
                 }
             }
         }
@@ -71,42 +80,78 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun DataItemView(dataItem: DataItem) {
-    Spacer(modifier = Modifier.size(10.dp))
-    Row (
-        modifier = Modifier
-            .fillMaxWidth()
-            ){
-        Text(
-            text = "${dataItem.id}",
-            fontWeight = FontWeight.Bold,
-            fontSize = 50.sp,
+fun DataItemScreen(items: List<DataItem>){
+    var dataItem by remember {mutableStateOf<DataItem?> (null)}
+    DataItemList(items) {dataItem = it}
+    dataItem?. let{
+        AlertDialog(
+            onDismissRequest = {dataItem  = null },
+            title = { Text(
+                text = "${it.name}",
+//                fontWeight = FontWeight.Bold,
+            ) },
+            text = {
+                Text(text = "${it.description}")
+            },
+            confirmButton = {
+                Button({dataItem  = null})
+                {Text(text = "Okay")}
+            },
         )
-        Spacer(modifier = Modifier.size(60.dp))
-        Column{
-            Text(text = "${dataItem.name}",
+    }
+
+}
+
+@Composable
+fun DataItemView(dataItem: DataItem) {
+    Column {
+        Spacer(
+            modifier = Modifier
+                .size(10.dp)
+        )
+        Row (horizontalArrangement = Arrangement.spacedBy(60.dp),
+        ){
+            Text(
+                text = "${dataItem.id}",
                 fontWeight = FontWeight.Bold,
-                fontSize = 50.sp,
+                fontSize = 35.sp,
+            )
+
+            Text(
+                text = "${dataItem.name}",
+                fontWeight = FontWeight.Bold,
+                fontSize = 35.sp,
             )
         }
-    }
-    Spacer(modifier = Modifier.size(5.dp))
-    Column{
-            Text(text = "${dataItem.description}",
-                fontSize = 40.sp,
-                textAlign = TextAlign.Left
-            )
+
+        Text(
+            text = "${dataItem.description}",
+            fontSize = 30.sp,
+            textAlign = TextAlign.Left
+        )
     }
 }
 
 @Composable
-fun DataItemList(dataItems: List<DataItem>) {
+fun DataItemList(dataItems: List<DataItem>,
+                 dataItemClicked: (DataItem) -> Unit) {
     /* Create the list here. This function will call DataItemView() */
-    LazyColumn {
+    LazyColumn (
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+
+        ){
         // iterate through the arraylist dataitems
         items(dataItems){item ->
-            DataItemView(item)
+            Box(
+                modifier = Modifier.clickable {
+                    dataItemClicked(item)
+                }
+            ){
+                DataItemView(item)
+            }
         }
+
     }
 }
 
