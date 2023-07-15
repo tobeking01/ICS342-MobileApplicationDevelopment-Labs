@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.ics342.labs.ui.theme.LabsTheme
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +42,7 @@ private fun loadData(resources: Resources): String {
 }
 
 private fun dataFromJsonString(json: String): List</* Add your data type here */> {
-    val moshi: Moshi = Moshi.Builder().build()
-    val jsonAdapter: JsonAdapter<List</* Put your data type here */>> = moshi.adapter<List</* put your data type here*/>>()
-    return jsonAdapter.fromJson(json)
+    val moshi: Moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
+    val jsonAdapter: JsonAdapter<List</* Put your data type here */>> = moshi.adapter()
+    return jsonAdapter.fromJson(json) ?: listOf()
 }
