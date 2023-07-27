@@ -33,28 +33,33 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            var hasPermission by remember { mutableStateOf(false) }
-            val context = LocalContext.current
-            val launcher = rememberLauncherForActivityResult(RequestPermission()) {
-                if (it) {
-                    startNotificationService(context)
-                }
-            }
-            LabsTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Button(
-                            onClick = {
-                                checkOrRequestPermission(
-                                    context,
-                                    launcher
-                                ) { startNotificationService(context) }
-                            }
-                        ) {
-                            Text("Show Notification")
-                        }
+            MainActivityContent()
+        }
+    }
+}
+
+@Composable
+fun MainActivityContent() {
+    var hasPermission by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(RequestPermission()) {
+        if (it) {
+            startNotificationService(context)
+        }
+    }
+    LabsTheme {
+        // A surface container using the 'background' color from the theme
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Button(
+                    onClick = {
+                        checkOrRequestPermission(
+                            context,
+                            launcher
+                        ) { startNotificationService(context) }
                     }
+                ) {
+                    Text("Show Notification")
                 }
             }
         }
@@ -62,7 +67,8 @@ class MainActivity : ComponentActivity() {
 }
 
 fun startNotificationService(context: Context) {
-    TODO("Start the Notification Service")
+    val notificationIntent = Intent(context, NotificationService::class.java)
+    ContextCompat.startForegroundService(context, notificationIntent)
 }
 
 private fun checkOrRequestPermission(
