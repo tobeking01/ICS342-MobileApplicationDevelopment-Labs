@@ -1,6 +1,6 @@
 package com.ics342.labs
 
-import android.Manifest.permission
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -10,14 +10,14 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 
+
 class NotificationService : Service() {
-
     private val notificationManager: NotificationManagerCompat = NotificationManagerCompat.from(this)
-
 
     override fun onCreate() {
         super.onCreate()
@@ -27,21 +27,25 @@ class NotificationService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // If permission has not been granted, stop the service and return from
         // onStartCommand
+        Log.d("NotificationService", "onStartCommand called")
+
         if (ContextCompat.checkSelfPermission(
                 this@NotificationService,
-                permission.POST_NOTIFICATIONS
+                Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
         ) {
+            Log.d("NotificationService", "Permission not granted. Stopping the service.")
             stopSelf()
             return START_NOT_STICKY
         }
 
         // Build notification
-        val flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+        // Create an explicit intent for an Activity in your app
         val notificationIntent = Intent(this, MainActivity::class.java).apply {
-            this.flags =flags
-//            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
+
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,
@@ -50,14 +54,17 @@ class NotificationService : Service() {
         )
 
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.star)
             .setContentTitle("My notification")
             .setContentText("Hello World!")
-            .setSmallIcon(R.drawable.star) // Replace with your notification icon
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
 
         notificationManager.notify(NOTIFICATION_ID, builder.build())
+
+        // Start the service as a foreground service
+        startForeground(NOTIFICATION_ID, builder.build())
 
         return START_STICKY_COMPATIBILITY
     }
@@ -76,8 +83,15 @@ class NotificationService : Service() {
                 description = descriptionText
             }
 
-            val notificationManager: NotificationManagerCompat = NotificationManagerCompat.from(context)
-            notificationManager.createNotificationChannel(channel)
+            // Check if the channel already exists before creating it
+            val notificationManager: NotificationManagerCompat =
+                NotificationManagerCompat.from(context)
+            if (notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
+                notificationManager.createNotificationChannel(channel)
+                Log.d("NotificationService", "Notification channel created.")
+            } else {
+                Log.d("NotificationService", "Notification channel already exists.")
+            }
         }
     }
 
